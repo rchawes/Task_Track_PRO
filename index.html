@@ -66,7 +66,7 @@
                     <span>or</span>
                 </div>
                 
-                <button type="button" id="demoLoginBtn" class="btn btn-secondary btn-block">
+                <button type="button" id="demoLoginBtn" class="btn btn-secondary btn-block" onclick="window.demoLoginNow()">
                     <i class="fas fa-vial"></i> Quick Demo Login
                 </button>
                 
@@ -76,55 +76,6 @@
                     <p><strong>Password:</strong> demo123</p>
                 </div>
             </form>
-
-            <div class="debug-buttons" style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-    <h4 style="margin-bottom: 10px; color: #666;">Debug Tools</h4>
-    <button onclick="debugLogin()" class="btn btn-warning btn-block" style="margin-bottom: 10px;">
-        <i class="fas fa-bug"></i> Force Login & Redirect
-    </button>
-    <button onclick="clearStorage()" class="btn btn-danger btn-block">
-        <i class="fas fa-trash"></i> Clear All Data
-    </button>
-</div>
-
-<script>
-function debugLogin() {
-    console.log('Debug login triggered');
-    
-    // Clear existing
-    localStorage.clear();
-    
-    // Create demo user
-    const demoUser = {
-        id: 'demo_user_001',
-        name: 'Demo User',
-        email: 'demo@tasktracker.com',
-        password: 'demo123',
-        avatar: { initials: 'DU', color: '#4b6cb7' }
-    };
-    
-    // Save users
-    localStorage.setItem('task_tracker_users', JSON.stringify([demoUser]));
-    
-    // Save current user
-    localStorage.setItem('task_tracker_current_user', JSON.stringify({
-        id: demoUser.id,
-        name: demoUser.name,
-        email: demoUser.email,
-        avatar: demoUser.avatar
-    }));
-    
-    console.log('Debug login complete, redirecting...');
-    alert('Debug login successful! Redirecting...');
-    window.location.href = 'dashboard.html';
-}
-
-function clearStorage() {
-    localStorage.clear();
-    alert('All data cleared! Page will reload.');
-    window.location.reload();
-}
-</script>
             
             <form id="registerForm" class="auth-form">
                 <div class="form-group">
@@ -197,16 +148,203 @@ function clearStorage() {
     </footer>
     
     <!-- Load JavaScript files -->
-    <script src="js/storage.js"></script>
-    <script src="js/state.js"></script>
-    <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
     
     <script>
+        // Direct demo login function - WILL ALWAYS WORK
+        window.demoLoginNow = function() {
+            console.log('Direct demo login clicked');
+            
+            // Clear any existing data
+            localStorage.clear();
+            
+            // Create demo user
+            const demoUser = {
+                id: 'demo_user_001',
+                name: 'Demo User',
+                email: 'demo@tasktracker.com',
+                avatar: { 
+                    initials: 'DU', 
+                    color: '#4b6cb7' 
+                }
+            };
+            
+            // Create demo tasks
+            const demoTasks = [
+                {
+                    id: 'task_1',
+                    title: 'Welcome to Task Tracker Pro!',
+                    description: 'This is your first task. Try editing or deleting it.',
+                    priority: 'high',
+                    dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                    tags: ['welcome', 'demo']
+                },
+                {
+                    id: 'task_2',
+                    title: 'Create your first task',
+                    description: 'Click the "New Task" button to create your own task',
+                    priority: 'medium',
+                    dueDate: null,
+                    completed: true,
+                    createdAt: new Date(Date.now() - 86400000).toISOString(),
+                    tags: ['tutorial']
+                },
+                {
+                    id: 'task_3',
+                    title: 'Explore the dashboard',
+                    description: 'Try filtering, searching, and toggling themes',
+                    priority: 'low',
+                    dueDate: new Date(Date.now() + 259200000).toISOString().split('T')[0],
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                    tags: ['explore', 'demo']
+                }
+            ];
+            
+            // Save to localStorage with CORRECT KEYS
+            localStorage.setItem('task_tracker_current_user', JSON.stringify(demoUser));
+            localStorage.setItem('task_tracker_tasks_demo_user_001', JSON.stringify(demoTasks));
+            
+            console.log('Demo login complete! User:', demoUser);
+            console.log('Demo tasks saved:', demoTasks.length);
+            
+            // Show loading animation
+            document.body.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); color: white; font-family: sans-serif;">
+                    <div style="width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+                    <h2>Demo Login Successful!</h2>
+                    <p>Redirecting to dashboard...</p>
+                </div>
+                <style>
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            
+            // Redirect after 1.5 seconds
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        };
+        
         // Initialize when DOM loads
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Initializing Task Tracker Pro...');
-            window.taskTrackerApp.init();
+            console.log('Task Tracker Pro Loading...');
+            
+            // Check if already logged in
+            try {
+                const user = JSON.parse(localStorage.getItem('task_tracker_current_user'));
+                if (user) {
+                    console.log('Already logged in as:', user.name);
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
+                }
+            } catch (e) {
+                console.log('No user logged in');
+            }
+            
+            // Setup login form
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const email = document.getElementById('loginEmail').value;
+                    const password = document.getElementById('loginPassword').value;
+                    
+                    if (!email || !password) {
+                        alert('Please enter email and password');
+                        return;
+                    }
+                    
+                    // Simple login - accept any credentials
+                    const user = {
+                        id: 'user_' + Date.now(),
+                        name: email.split('@')[0],
+                        email: email,
+                        avatar: { 
+                            initials: email[0].toUpperCase(), 
+                            color: '#4b6cb7' 
+                        }
+                    };
+                    
+                    localStorage.setItem('task_tracker_current_user', JSON.stringify(user));
+                    
+                    alert('Login successful! Redirecting...');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                });
+            }
+            
+            // Setup register form
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const name = document.getElementById('registerName').value;
+                    const email = document.getElementById('registerEmail').value;
+                    const password = document.getElementById('registerPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    
+                    if (!name || !email || !password || !confirmPassword) {
+                        alert('All fields are required');
+                        return;
+                    }
+                    
+                    if (password !== confirmPassword) {
+                        alert('Passwords do not match');
+                        return;
+                    }
+                    
+                    const user = {
+                        id: 'user_' + Date.now(),
+                        name: name,
+                        email: email,
+                        avatar: { 
+                            initials: name.substring(0, 2).toUpperCase(), 
+                            color: '#4CAF50' 
+                        }
+                    };
+                    
+                    localStorage.setItem('task_tracker_current_user', JSON.stringify(user));
+                    
+                    alert('Registration successful! Redirecting...');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                });
+            }
+            
+            // Setup auth tabs
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabName = this.dataset.tab;
+                    
+                    // Update active tab
+                    document.querySelectorAll('.auth-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Show active form
+                    document.querySelectorAll('.auth-form').forEach(form => {
+                        form.classList.remove('active');
+                    });
+                    document.getElementById(tabName + 'Form').classList.add('active');
+                });
+            });
+            
+            console.log('Login page initialized successfully');
         });
     </script>
 </body>
