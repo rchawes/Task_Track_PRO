@@ -1,148 +1,142 @@
-/*
- * Authentication Module
- */
-
-import { appState } from '../core/state.js';
-import { eventSystem, Events } from '../core/events.js';
-import { storage } from '../core/storage.js';
-
-class Authentication {
-    constructor() {
-        this.users = JSON.parse(localStorage.getItem('task_tracker_users')) || [];
-        this.initDemoUser();
+// Authentication Module
+const TaskTrackerAuth = {
+    init() {
         this.setupEventListeners();
-    }
-    
-    initDemoUser() {
-        // Add demo user if not exists
-        const hasDemoUser = this.users.some(u => u.email === 'demo@tasktracker.com');
-        if (!hasDemoUser) {
-            this.users.push({
-                id: 'demo_user_001',
-                name: 'Demo User',
-                email: 'demo@tasktracker.com',
-                password: 'demo123',
-                avatar: '👨‍💻',
-                createdAt: new Date().toISOString(),
-                lastLogin: null
-            });
-            localStorage.setItem('task_tracker_users', JSON.stringify(this.users));
-        }
-    }
+    },
     
     setupEventListeners() {
-        eventSystem.on(Events.AUTH_LOGIN, (data) => this.handleLogin(data));
-        eventSystem.on(Events.AUTH_REGISTER, (data) => this.handleRegister(data));
-        eventSystem.on(Events.AUTH_LOGOUT, () => this.handleLogout());
-    }
-    
-    handleLogin(credentials) {
-        try {
-            const { email, password } = credentials;
-            
-            // Validation
-            if (!email || !password) {
-                appState.addNotification('Please enter email and password', 'error');
-                return false;
-            }
-            
-            // Find user
-            const user = this.users.find(u => 
-                u.email === email && u.password === password
-            );
-            
-            if (!user) {
-                appState.addNotification('Invalid email or password', 'error');
-                return false;
-            }
-            
-            // Update last login
-            user.lastLogin = new Date().toISOString();
-            localStorage.setItem('task_tracker_users', JSON.stringify(this.users));
-            
-            // Login user
-            const userData = {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                avatar: user.avatar
-            };
-            
-            appState.login(userData);
-            appState.addNotification(`Welcome back, ${user.name}!`, 'success');
-            
-            // Redirect to dashboard after delay
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1000);
-            
-            return true;
-            
-        } catch (error) {
-            console.error('Login error:', error);
-            appState.addNotification('Login failed. Please try again.', 'error');
-            return false;
+        // Login form
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleLogin();
+            });
         }
-    }
-    
-    handleRegister(userData) {
-        try {
-            const { name, email, password, confirmPassword } = userData;
-            
-            // Validation
-            if (!name || !email || !password || !confirmPassword) {
-                appState.addNotification('All fields are required', 'error');
-                return false;
-            }
-            
-            if (password.length < 6) {
-                appState.addNotification('Password must be at least 6 characters', 'error');
-                return false;
-            }
-            
-            if (password !== confirmPassword) {
-                appState.addNotification('Passwords do not match', 'error');
-                return false;
-            }
-            
-            if (this.users.some(u => u.email === email)) {
-                appState.addNotification('Email already registered', 'error');
-                return false;
-            }
-            
-            // Create new user
-            const newUser = {
-                id: 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                name: name.trim(),
-                email: email.trim().toLowerCase(),
-                password: password,
-                avatar: this.generateAvatar(name),
-                createdAt: new Date().toISOString(),
-                lastLogin: null
-            };
-            
-            // Save user
-            this.users.push(newUser);
-            localStorage.setItem('task_tracker_users', JSON.stringify(this.users));
-            
-            // Auto login
-            return this.handleLogin({ email, password });
-            
-        } catch (error) {
-            console.error('Registration error:', error);
-            appState.addNotification('Registration failed. Please try again.', 'error');
-            return false;
+        
+        // Register form
+        const registerForm = document.getElementById('registerForm');
+        if (registerForm) {
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleRegister();
+            });
         }
-    }
+        
+        // Demo login button
+        const demoBtn = document.getElementById('demoLoginBtn');
+        if (demoBtn) {
+            demoBtn.addEventListener('click', () => {
+                this.handleDemoLogin();
+            });
+        }
+        
+        // Auth tabs
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.target.dataset.tab;
+                this.switchAuthTab(tabName);
+            });
+        });
+    },
     
-    handleLogout() {
-        appState.logout();
-        appState.addNotification('Logged out successfully', 'info');
+    handleLogin() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        if (!email || !password) {
+            this.showNotification('Please enter email and password', 'error');
+            return;
+        }
+        
+        const users = TaskTrackerStorage.getUsers();
+        const user = users.find(u => u.email === email && u.password === password);
+        
+        if (!user) {
+            this.showNotification('Invalid email or password', 'error');
+            return;
+        }
+        
+        // Login successful
+        const userData = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar
+        };
+        
+        TaskTrackerState.login(userData);
+        this.showNotification(`Welcome back, ${user.name}!`, 'success');
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 1000);
+    },
+    
+    handleDemoLogin() {
+        // Auto-fill demo credentials
+        document.getElementById('loginEmail').value = 'demo@tasktracker.com';
+        document.getElementById('loginPassword').value = 'demo123';
+        this.handleLogin();
+    },
+    
+    handleRegister() {
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        // Validation
+        if (!name || !email || !password || !confirmPassword) {
+            this.showNotification('All fields are required', 'error');
+            return;
+        }
+        
+        if (password.length < 6) {
+            this.showNotification('Password must be at least 6 characters', 'error');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            this.showNotification('Passwords do not match', 'error');
+            return;
+        }
+        
+        const users = TaskTrackerStorage.getUsers();
+        
+        if (users.some(u => u.email === email)) {
+            this.showNotification('Email already registered', 'error');
+            return;
+        }
+        
+        // Create new user
+        const newUser = {
+            id: 'user_' + Date.now(),
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            password: password,
+            avatar: this.generateAvatar(name),
+            createdAt: new Date().toISOString()
+        };
+        
+        TaskTrackerStorage.addUser(newUser);
+        
+        // Auto login
+        const userData = {
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email,
+            avatar: newUser.avatar
+        };
+        
+        TaskTrackerState.login(userData);
+        this.showNotification('Registration successful! Welcome!', 'success');
         
         setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 500);
-    }
+            window.location.href = 'dashboard.html';
+        }, 1000);
+    },
     
     generateAvatar(name) {
         const colors = ['#4b6cb7', '#4CAF50', '#FF9800', '#9C27B0', '#2196F3', '#795548'];
@@ -161,17 +155,28 @@ class Authentication {
             initials,
             color: colors[colorIndex]
         };
-    }
+    },
     
-    getCurrentUser() {
-        return appState.getState().user;
-    }
+    switchAuthTab(tabName) {
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+        
+        document.querySelectorAll('.auth-form').forEach(form => {
+            form.classList.toggle('active', form.id === `${tabName}Form`);
+        });
+    },
     
-    isAuthenticated() {
-        return !!this.getCurrentUser();
+    showNotification(message, type = 'info') {
+        TaskTrackerState.addNotification(message, type);
+    },
+    
+    logout() {
+        TaskTrackerState.logout();
+        this.showNotification('Logged out successfully', 'info');
+        
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 500);
     }
-}
-
-// Create and export singleton
-const auth = new Authentication();
-export default auth;
+};

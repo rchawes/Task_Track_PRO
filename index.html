@@ -13,12 +13,10 @@
 <body class="light-theme">
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner"></div>
-        <p>Loading application...</p>
+        <p>Loading...</p>
     </div>
     
     <div id="notificationsContainer" class="notifications-container"></div>
-    
-    <div id="modal" class="modal"></div>
     
     <main class="auth-container">
         <div class="auth-header">
@@ -58,7 +56,6 @@
                         <input type="checkbox" name="remember">
                         <span>Remember me</span>
                     </label>
-                    <a href="#" class="text-link">Forgot password?</a>
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-block">
@@ -69,8 +66,12 @@
                     <span>or</span>
                 </div>
                 
+                <button type="button" id="demoLoginBtn" class="btn btn-secondary btn-block">
+                    <i class="fas fa-vial"></i> Quick Demo Login
+                </button>
+                
                 <div class="demo-credentials">
-                    <h4><i class="fas fa-vial"></i> Demo Account</h4>
+                    <h4><i class="fas fa-info-circle"></i> Demo Account</h4>
                     <p><strong>Email:</strong> demo@tasktracker.com</p>
                     <p><strong>Password:</strong> demo123</p>
                 </div>
@@ -113,7 +114,7 @@
                 <div class="form-options">
                     <label class="checkbox-label">
                         <input type="checkbox" name="terms" required>
-                        <span>I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></span>
+                        <span>I agree to the <a href="#">Terms</a></span>
                     </label>
                 </div>
                 
@@ -121,11 +122,6 @@
                     <i class="fas fa-user-plus"></i> Create Account
                 </button>
             </form>
-            
-            <div class="auth-footer">
-                <p>By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a></p>
-                <p>Need help? <a href="#">Contact Support</a></p>
-            </div>
         </div>
         
         <div class="features-showcase">
@@ -148,10 +144,21 @@
     </main>
     
     <footer class="auth-page-footer">
-        <p>Task Tracker Pro © 2024 | Built with <i class="fas fa-heart"></i> for productivity</p>
-        <p>Portfolio Project • <a href="https://github.com/rchawes" target="_blank">View on GitHub</a></p>
+        <p>Task Tracker Pro © 2026 | Portfolio Project</p>
     </footer>
     
-    <script type="module" src="js/main.js"></script>
+    <!-- Load JavaScript files -->
+    <script src="js/storage.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // Initialize when DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing Task Tracker Pro...');
+            window.taskTrackerApp.init();
+        });
+    </script>
 </body>
 </html>

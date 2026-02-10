@@ -13,7 +13,7 @@
 <body class="light-theme">
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner"></div>
-        <p>Loading your tasks...</p>
+        <p>Loading...</p>
     </div>
     
     <div id="notificationsContainer" class="notifications-container"></div>
@@ -39,10 +39,6 @@
             
             <button class="btn-icon" id="exportBtn" title="Export tasks">
                 <i class="fas fa-download"></i>
-            </button>
-            
-            <button class="btn-icon" id="importBtn" title="Import tasks">
-                <i class="fas fa-upload"></i>
             </button>
             
             <div class="user-menu">
@@ -80,9 +76,6 @@
                     <button class="filter-btn" data-filter="status" data-value="completed">
                         <i class="fas fa-check-circle"></i> Completed
                     </button>
-                    <button class="filter-btn" data-filter="priority" data-value="high">
-                        <i class="fas fa-flag" style="color: #f44336;"></i> High Priority
-                    </button>
                     <button class="filter-btn" id="clearFiltersBtn">
                         <i class="fas fa-times"></i> Clear Filters
                     </button>
@@ -112,11 +105,6 @@
                     </div>
                     <div class="progress-label">Completion Rate</div>
                 </div>
-            </div>
-            
-            <div class="sidebar-footer">
-                <p id="taskSummary">0 tasks • 0 completed</p>
-                <p class="app-version">v1.0.0</p>
             </div>
         </aside>
         
@@ -181,8 +169,8 @@
                 </div>
             </div>
             
-            <!-- Empty State (hidden by default) -->
-            <div class="empty-state" style="display: none;">
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
                 <i class="fas fa-tasks"></i>
                 <h3>No tasks yet</h3>
                 <p>Create your first task to get started!</p>
@@ -195,56 +183,21 @@
     
     <footer class="app-footer">
         <p>Task Tracker Pro • Portfolio Project • Built with HTML, CSS & JavaScript</p>
-        <p>
-            <a href="https://github.com/rchawes" target="_blank"><i class="fab fa-github"></i> GitHub</a> • 
-            <a href="https://www.linkedin.com/in/richard-hawes-a4533399/" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a> • 
-            <a href="#" onclick="window.TaskTrackerApp?.debug()"><i class="fas fa-bug"></i> Debug</a>
-        </p>
     </footer>
     
-    <script type="module" src="js/main.js"></script>
+    <!-- Load JavaScript files -->
+    <script src="js/storage.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/tasks.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
     
     <script>
-        // Update filtered count when tasks change
+        // Initialize app when DOM loads
         document.addEventListener('DOMContentLoaded', function() {
-            const updateFilteredCount = () => {
-                const taskList = document.getElementById('taskList');
-                const filteredCount = taskList.querySelectorAll('.task-item').length;
-                const totalCount = window.TaskTrackerApp?.getState()?.tasks.length || 0;
-                
-                document.getElementById('filteredCount').textContent = filteredCount;
-                document.getElementById('totalCount').textContent = totalCount;
-                
-                // Show/hide empty state
-                const emptyState = document.querySelector('.empty-state');
-                if (emptyState) {
-                    emptyState.style.display = filteredCount === 0 ? 'block' : 'none';
-                    taskList.style.display = filteredCount === 0 ? 'none' : 'block';
-                }
-                
-                // Update quick stat cards
-                document.getElementById('totalTasksCard').textContent = totalCount;
-                document.getElementById('completedTasksCard').textContent = 
-                    window.TaskTrackerApp?.getState()?.tasks.filter(t => t.completed).length || 0;
-                document.getElementById('pendingTasksCard').textContent = 
-                    window.TaskTrackerApp?.getState()?.tasks.filter(t => !t.completed).length || 0;
-                document.getElementById('overdueTasksCard').textContent = 
-                    window.TaskTrackerApp?.getState()?.tasks.filter(t => {
-                        if (!t.dueDate || t.completed) return false;
-                        return new Date(t.dueDate) < new Date();
-                    }).length || 0;
-            };
-            
-            // Initial update
-            setTimeout(updateFilteredCount, 100);
-            
-            // Update on state changes (simple polling for demo)
-            setInterval(updateFilteredCount, 1000);
-            
-            // Create first task button
-            document.getElementById('createFirstTaskBtn')?.addEventListener('click', () => {
-                window.TaskTrackerApp?.getModule('ui')?.openModal('task');
-            });
+            console.log('Dashboard initializing...');
+            window.taskTrackerApp.init();
         });
     </script>
 </body>
