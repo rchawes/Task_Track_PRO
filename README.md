@@ -48,23 +48,43 @@
 
 task-tracker-pro/
 
-├── auth.html # Authentication page
+├── index.html              # Login/Register page
 
-├── dashboard.html # Main dashboard
+├── dashboard.html          # Main application
 
-├── style.css # Main stylesheet (500+ lines)
+├── css/
 
-├── script.js # Core application logic
+│   ├── main.css           # Global styles
 
-├── auth.js # Authentication module
+│   ├── auth.css           # Authentication styles
 
-├── dashboard.js # Dashboard module
+│   ├── dashboard.css      # Dashboard styles
 
-├── utils.js # Utility functions
+│   └── components.css     # Component styles
 
-├── README.md # Documentation
+├── js/
 
-└── assets/ # Images and icons
+│   ├── core/
+
+│   │   ├── state.js       # State management
+
+│   │   ├── events.js      # Event system
+
+│   │   └── storage.js     # Data persistence
+
+│   ├── modules/
+
+│   │   ├── auth.js        # Authentication
+
+│   │   ├── tasks.js       # Task management
+
+│   │   ├── ui.js          # UI rendering
+
+│   │   └── workspace.js   # Workspace management
+
+│   └── main.js            # Application entry point
+
+└── assets/                # Images, icons
 
 
 ## 🚀 Getting Started
