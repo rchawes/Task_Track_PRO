@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Tracker Pro | Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+</head>
+<body class="light-theme">
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Loading application...</p>
+    </div>
+    
+    <div id="notificationsContainer" class="notifications-container"></div>
+    
+    <div id="modal" class="modal"></div>
+    
+    <main class="auth-container">
+        <div class="auth-header">
+            <h1><i class="fas fa-tasks"></i> Task Tracker Pro</h1>
+            <p class="subtitle">Enhanced task management for productive teams</p>
+        </div>
+        
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button class="auth-tab" data-tab="register">
+                    <i class="fas fa-user-plus"></i> Register
+                </button>
+            </div>
+            
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginEmail">
+                        <i class="fas fa-envelope"></i> Email Address
+                    </label>
+                    <input type="email" id="loginEmail" name="email" class="form-control" 
+                           placeholder="your@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <input type="password" id="loginPassword" name="password" class="form-control" 
+                           placeholder="••••••••" required>
+                </div>
+                
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="remember">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="text-link">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                
+                <div class="auth-divider">
+                    <span>or</span>
+                </div>
+                
+                <div class="demo-credentials">
+                    <h4><i class="fas fa-vial"></i> Demo Account</h4>
+                    <p><strong>Email:</strong> demo@tasktracker.com</p>
+                    <p><strong>Password:</strong> demo123</p>
+                </div>
+            </form>
+            
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerName">
+                        <i class="fas fa-user"></i> Full Name
+                    </label>
+                    <input type="text" id="registerName" name="name" class="form-control" 
+                           placeholder="John Doe" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">
+                        <i class="fas fa-envelope"></i> Email Address
+                    </label>
+                    <input type="email" id="registerEmail" name="email" class="form-control" 
+                           placeholder="your@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <input type="password" id="registerPassword" name="password" class="form-control" 
+                           placeholder="••••••••" required>
+                    <small class="form-hint">Minimum 6 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">
+                        <i class="fas fa-lock"></i> Confirm Password
+                    </label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" 
+                           placeholder="••••••••" required>
+                </div>
+                
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="terms" required>
+                        <span>I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a></p>
+                <p>Need help? <a href="#">Contact Support</a></p>
+            </div>
+        </div>
+        
+        <div class="features-showcase">
+            <div class="feature">
+                <i class="fas fa-tasks"></i>
+                <h3>Smart Task Management</h3>
+                <p>Organize tasks with priorities, due dates, and tags</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-chart-line"></i>
+                <h3>Progress Tracking</h3>
+                <p>Visual statistics and completion rates</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-moon"></i>
+                <h3>Dark & Light Themes</h3>
+                <p>Switch between themes for comfortable viewing</p>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="auth-page-footer">
+        <p>Task Tracker Pro © 2024 | Built with <i class="fas fa-heart"></i> for productivity</p>
+        <p>Portfolio Project • <a href="https://github.com/rchawes" target="_blank">View on GitHub</a></p>
+    </footer>
+    
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

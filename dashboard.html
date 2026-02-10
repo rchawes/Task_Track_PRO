@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Tracker Pro | Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+</head>
+<body class="light-theme">
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Loading your tasks...</p>
+    </div>
+    
+    <div id="notificationsContainer" class="notifications-container"></div>
+    
+    <div id="modal" class="modal"></div>
+    
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <i class="fas fa-tasks"></i>
+            <h1>Task Tracker Pro</h1>
+        </div>
+        
+        <div class="nav-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="taskSearch" placeholder="Search tasks...">
+        </div>
+        
+        <div class="nav-actions">
+            <button class="btn-icon" data-action="toggle-theme" title="Toggle theme">
+                <i class="fas fa-moon"></i>
+            </button>
+            
+            <button class="btn-icon" id="exportBtn" title="Export tasks">
+                <i class="fas fa-download"></i>
+            </button>
+            
+            <button class="btn-icon" id="importBtn" title="Import tasks">
+                <i class="fas fa-upload"></i>
+            </button>
+            
+            <div class="user-menu">
+                <div class="user-avatar" id="userAvatar">👤</div>
+                <div class="user-info">
+                    <span id="userName">Loading...</span>
+                    <small id="userEmail">user@example.com</small>
+                </div>
+                <a href="#" id="logoutBtn" class="btn-icon" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <button class="btn btn-primary btn-block" id="newTaskBtn">
+                    <i class="fas fa-plus"></i> New Task
+                </button>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-filter"></i> Filters</h3>
+                <div class="filter-list">
+                    <button class="filter-btn active" data-filter="status" data-value="all">
+                        <i class="fas fa-inbox"></i> All Tasks
+                    </button>
+                    <button class="filter-btn" data-filter="status" data-value="active">
+                        <i class="fas fa-clock"></i> Active
+                    </button>
+                    <button class="filter-btn" data-filter="status" data-value="completed">
+                        <i class="fas fa-check-circle"></i> Completed
+                    </button>
+                    <button class="filter-btn" data-filter="priority" data-value="high">
+                        <i class="fas fa-flag" style="color: #f44336;"></i> High Priority
+                    </button>
+                    <button class="filter-btn" id="clearFiltersBtn">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <span class="stat-value" id="totalTasks">0</span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="completedTasks">0</span>
+                        <span class="stat-label">Done</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="pendingTasks">0</span>
+                        <span class="stat-label">Pending</span>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+                    </div>
+                    <div class="progress-label">Completion Rate</div>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <p id="taskSummary">0 tasks • 0 completed</p>
+                <p class="app-version">v1.0.0</p>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h2>My Tasks</h2>
+                <div class="view-controls">
+                    <span class="view-count">
+                        <span id="filteredCount">0</span> of <span id="totalCount">0</span> tasks
+                    </span>
+                </div>
+            </header>
+            
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #4b6cb7;">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalTasksCard">0</h3>
+                        <p>Total Tasks</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #4CAF50;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="completedTasksCard">0</h3>
+                        <p>Completed</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #FF9800;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="pendingTasksCard">0</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #f44336;">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="overdueTasksCard">0</h3>
+                        <p>Overdue</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Task List -->
+            <div class="task-list-container">
+                <div id="taskList" class="task-list">
+                    <!-- Tasks will be rendered here -->
+                </div>
+            </div>
+            
+            <!-- Empty State (hidden by default) -->
+            <div class="empty-state" style="display: none;">
+                <i class="fas fa-tasks"></i>
+                <h3>No tasks yet</h3>
+                <p>Create your first task to get started!</p>
+                <button class="btn btn-primary" id="createFirstTaskBtn">
+                    <i class="fas fa-plus"></i> Create Task
+                </button>
+            </div>
+        </main>
+    </div>
+    
+    <footer class="app-footer">
+        <p>Task Tracker Pro • Portfolio Project • Built with HTML, CSS & JavaScript</p>
+        <p>
+            <a href="https://github.com/rchawes" target="_blank"><i class="fab fa-github"></i> GitHub</a> • 
+            <a href="https://www.linkedin.com/in/richard-hawes-a4533399/" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a> • 
+            <a href="#" onclick="window.TaskTrackerApp?.debug()"><i class="fas fa-bug"></i> Debug</a>
+        </p>
+    </footer>
+    
+    <script type="module" src="js/main.js"></script>
+    
+    <script>
+        // Update filtered count when tasks change
+        document.addEventListener('DOMContentLoaded', function() {
+            const updateFilteredCount = () => {
+                const taskList = document.getElementById('taskList');
+                const filteredCount = taskList.querySelectorAll('.task-item').length;
+                const totalCount = window.TaskTrackerApp?.getState()?.tasks.length || 0;
+                
+                document.getElementById('filteredCount').textContent = filteredCount;
+                document.getElementById('totalCount').textContent = totalCount;
+                
+                // Show/hide empty state
+                const emptyState = document.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.style.display = filteredCount === 0 ? 'block' : 'none';
+                    taskList.style.display = filteredCount === 0 ? 'none' : 'block';
+                }
+                
+                // Update quick stat cards
+                document.getElementById('totalTasksCard').textContent = totalCount;
+                document.getElementById('completedTasksCard').textContent = 
+                    window.TaskTrackerApp?.getState()?.tasks.filter(t => t.completed).length || 0;
+                document.getElementById('pendingTasksCard').textContent = 
+                    window.TaskTrackerApp?.getState()?.tasks.filter(t => !t.completed).length || 0;
+                document.getElementById('overdueTasksCard').textContent = 
+                    window.TaskTrackerApp?.getState()?.tasks.filter(t => {
+                        if (!t.dueDate || t.completed) return false;
+                        return new Date(t.dueDate) < new Date();
+                    }).length || 0;
+            };
+            
+            // Initial update
+            setTimeout(updateFilteredCount, 100);
+            
+            // Update on state changes (simple polling for demo)
+            setInterval(updateFilteredCount, 1000);
+            
+            // Create first task button
+            document.getElementById('createFirstTaskBtn')?.addEventListener('click', () => {
+                window.TaskTrackerApp?.getModule('ui')?.openModal('task');
+            });
+        });
+    </script>
+</body>
+</html>
