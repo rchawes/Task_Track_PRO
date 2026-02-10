@@ -19,13 +19,10 @@ const TaskTrackerApp = {
             console.log('On login page');
             if (user) {
                 console.log('User already logged in, redirecting to dashboard');
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 100);
-            } else {
-                TaskTrackerAuth.init();
-                this.setupLoginPage();
+                window.location.href = 'dashboard.html';
+                return;
             }
+            TaskTrackerAuth.init();
         } else if (currentPage === 'dashboard.html' || currentPage.includes('dashboard')) {
             console.log('On dashboard page');
             if (!user) {

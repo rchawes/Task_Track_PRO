@@ -90,11 +90,7 @@ const TaskTrackerAuth = {
         TaskTrackerState.setState({
             user: userData,
             tasks: tasks,
-            ui: {
-                theme: 'light',
-                loading: false,
-                notifications: []
-            }
+            ui: TaskTrackerState.getState().ui
         });
         
         // Show success message
@@ -102,9 +98,7 @@ const TaskTrackerAuth = {
         alert(`Welcome back, ${user.name}! Redirecting to dashboard...`);
         
         // Force redirect immediately
-        setTimeout(() => {
-            window.location.href = 'dashboard.html';
-        }, 500);
+        window.location.href = 'dashboard.html';
     },
     
     handleDemoLogin() {
