@@ -1,16 +1,10 @@
-// Task Management
+// Task Management - Working Version
 const TaskTrackerTasks = {
     init() {
-        this.setupEventListeners();
+        console.log('Tasks module initialized');
     },
     
-    setupEventListeners() {
-        // Event listeners will be set up by the main app
-    },
-    
-    createTask(initialData = {}) {
-        const user = TaskTrackerState.getState().user;
-        
+    createTask(data = {}) {
         return {
             id: 'task_' + Date.now(),
             title: '',
@@ -19,67 +13,30 @@ const TaskTrackerTasks = {
             dueDate: null,
             tags: [],
             completed: false,
-            starred: false,
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            createdBy: user?.id || null,
-            ...initialData
+            ...data
         };
     },
     
     saveTask(taskData) {
-        try {
-            if (!taskData.title || taskData.title.trim() === '') {
-                TaskTrackerState.addNotification('Task title is required', 'error');
-                return false;
-            }
-            
-            const task = {
-                ...taskData,
-                title: taskData.title.trim(),
-                description: taskData.description?.trim() || '',
-                updatedAt: new Date().toISOString()
-            };
-            
-            if (task.id && task.id.startsWith('task_')) {
-                // Update existing task
-                TaskTrackerState.updateTask(task.id, task);
-                TaskTrackerState.addNotification('Task updated successfully', 'success');
-            } else {
-                // Create new task
-                const newTask = this.createTask(task);
-                TaskTrackerState.addTask(newTask);
-                TaskTrackerState.addNotification('Task created successfully', 'success');
-            }
-            
-            return true;
-            
-        } catch (error) {
-            console.error('Save task error:', error);
-            TaskTrackerState.addNotification('Failed to save task', 'error');
+        if (!taskData.title || taskData.title.trim() === '') {
+            TaskTrackerState.showNotification('Task title is required', 'error');
             return false;
         }
-    },
-    
-    deleteTask(taskId) {
-        if (confirm('Are you sure you want to delete this task?')) {
-            TaskTrackerState.deleteTask(taskId);
-            TaskTrackerState.addNotification('Task deleted', 'info');
-        }
-    },
-    
-    toggleTaskComplete(taskId) {
-        TaskTrackerState.toggleTaskComplete(taskId);
         
-        const task = TaskTrackerState.getState().tasks.find(t => t.id === taskId);
-        if (task) {
-            const status = task.completed ? 'completed' : 'marked as active';
-            TaskTrackerState.addNotification(`Task "${task.title}" ${status}`, 'info');
+        if (taskData.id && taskData.id.startsWith('task_')) {
+            // Update existing task
+            TaskTrackerState.updateTask(taskData.id, taskData);
+        } else {
+            // Create new task
+            TaskTrackerState.addTask(taskData);
         }
+        
+        return true;
     },
     
     exportTasks() {
-        const tasks = TaskTrackerState.getState().tasks;
+        const tasks = TaskTrackerState.tasks;
         const data = {
             tasks,
             exportedAt: new Date().toISOString(),
@@ -96,6 +53,6 @@ const TaskTrackerTasks = {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        TaskTrackerState.addNotification('Tasks exported successfully', 'success');
+        TaskTrackerState.showNotification('Tasks exported successfully', 'success');
     }
 };

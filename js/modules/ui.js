@@ -1,71 +1,32 @@
-// UI Rendering Module
+// UI Rendering - Upated and Debugged
 const TaskTrackerUI = {
     init() {
-        this.setupEventListeners();
+        console.log('UI module initialized');
         this.render();
     },
     
-    setupEventListeners() {
-        // These will be set up by the main app
-    },
-    
     render() {
-        this.renderNotifications();
-        this.updateTheme();
+        this.renderUserInfo();
         this.renderTaskList();
-        this.updateStats();
-        this.updateUserInfo();
+        this.renderStats();
+        this.renderNotifications();
+        this.applyTheme();
     },
     
-    renderNotifications() {
-        const container = document.getElementById('notificationsContainer');
-        if (!container) return;
+    renderUserInfo() {
+        const user = TaskTrackerState.user;
+        if (!user) return;
         
-        const notifications = TaskTrackerState.getState().ui.notifications;
+        const userName = document.getElementById('userName');
+        const userEmail = document.getElementById('userEmail');
+        const userAvatar = document.getElementById('userAvatar');
         
-        container.innerHTML = notifications.map(notification => `
-            <div class="notification notification-${notification.type}">
-                <div class="notification-content">
-                    <i class="fas fa-${this.getNotificationIcon(notification.type)}"></i>
-                    <span>${notification.message}</span>
-                </div>
-                <button class="notification-close" data-id="${notification.id}">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `).join('');
+        if (userName) userName.textContent = user.name;
+        if (userEmail) userEmail.textContent = user.email;
         
-        // Attach close listeners
-        container.querySelectorAll('.notification-close').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const id = parseInt(btn.dataset.id);
-                TaskTrackerState.removeNotification(id);
-            });
-        });
-    },
-    
-    getNotificationIcon(type) {
-        switch (type) {
-            case 'success': return 'check-circle';
-            case 'error': return 'exclamation-circle';
-            case 'warning': return 'exclamation-triangle';
-            case 'info': return 'info-circle';
-            default: return 'bell';
-        }
-    },
-    
-    updateTheme() {
-        const theme = TaskTrackerState.getState().ui.theme;
-        document.body.classList.remove('light-theme', 'dark-theme');
-        document.body.classList.add(theme + '-theme');
-        
-        // Update theme toggle button
-        const themeToggle = document.querySelector('[data-action="toggle-theme"]');
-        if (themeToggle) {
-            const icon = themeToggle.querySelector('i');
-            if (icon) {
-                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            }
+        if (userAvatar && user.avatar) {
+            userAvatar.textContent = user.avatar.initials;
+            userAvatar.style.backgroundColor = user.avatar.color;
         }
     },
     
@@ -74,17 +35,28 @@ const TaskTrackerUI = {
         if (!taskList) return;
         
         const tasks = TaskTrackerState.getFilteredTasks();
+        const stats = TaskTrackerState.getStatistics();
+        
+        // Update filtered count
+        const filteredCount = document.getElementById('filteredCount');
+        const totalCount = document.getElementById('totalCount');
+        if (filteredCount) filteredCount.textContent = tasks.length;
+        if (totalCount) totalCount.textContent = TaskTrackerState.tasks.length;
+        
+        // Show/hide empty state
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState) {
+            emptyState.style.display = tasks.length === 0 ? 'block' : 'none';
+            taskList.style.display = tasks.length === 0 ? 'none' : 'block';
+        }
         
         if (tasks.length === 0) {
-            taskList.innerHTML = this.renderEmptyState();
+            taskList.innerHTML = '';
             return;
         }
         
         taskList.innerHTML = tasks.map(task => this.renderTaskItem(task)).join('');
         this.attachTaskEventListeners();
-        
-        // Update filtered count
-        this.updateFilteredCount();
     },
     
     renderTaskItem(task) {
@@ -94,9 +66,7 @@ const TaskTrackerUI = {
             low: '#4CAF50'
         };
         
-        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-        const isOverdue = dueDate && dueDate < new Date() && !task.completed;
-        const dueText = dueDate ? this.formatDate(dueDate) : 'No due date';
+        const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.completed;
         
         return `
             <div class="task-item ${task.completed ? 'completed' : ''} ${isOverdue ? 'overdue' : ''}" data-task-id="${task.id}">
@@ -108,7 +78,7 @@ const TaskTrackerUI = {
                 <div class="task-content">
                     <div class="task-header">
                         <h4 class="task-title">${this.escapeHtml(task.title)}</h4>
-                        ${task.starred ? '<span class="star-indicator"><i class="fas fa-star"></i></span>' : ''}
+                        ${task.priority === 'high' ? '<span class="star-indicator"><i class="fas fa-flag"></i></span>' : ''}
                     </div>
                     
                     ${task.description ? `
@@ -117,19 +87,15 @@ const TaskTrackerUI = {
                     
                     <div class="task-footer">
                         <div class="task-tags">
-                            ${task.priority !== 'none' ? `
-                                <span class="priority-badge" style="background: ${priorityColors[task.priority] || '#9e9e9e'}">
-                                    <i class="fas fa-flag"></i> ${task.priority}
+                            <span class="priority-badge" style="background: ${priorityColors[task.priority] || '#9e9e9e'}">
+                                <i class="fas fa-flag"></i> ${task.priority}
+                            </span>
+                            
+                            ${task.dueDate ? `
+                                <span class="due-date ${isOverdue ? 'overdue' : ''}">
+                                    <i class="fas fa-calendar"></i> ${new Date(task.dueDate).toLocaleDateString()}
                                 </span>
                             ` : ''}
-                            
-                            ${task.tags?.map(tag => `
-                                <span class="tag">${this.escapeHtml(tag)}</span>
-                            `).join('') || ''}
-                            
-                            <span class="due-date ${isOverdue ? 'overdue' : ''}">
-                                <i class="fas fa-calendar"></i> ${dueText}
-                            </span>
                         </div>
                         
                         <div class="task-actions">
@@ -146,42 +112,13 @@ const TaskTrackerUI = {
         `;
     },
     
-    renderEmptyState() {
-        const { filters } = TaskTrackerState.getState();
-        let message = 'No tasks yet. Create your first task!';
-        let icon = 'fas fa-tasks';
-        
-        if (filters.search) {
-            message = 'No tasks match your search';
-            icon = 'fas fa-search';
-        } else if (filters.status === 'completed') {
-            message = 'No completed tasks';
-            icon = 'fas fa-check-circle';
-        } else if (filters.status === 'active') {
-            message = 'No active tasks';
-            icon = 'fas fa-clock';
-        }
-        
-        return `
-            <div class="empty-state">
-                <i class="${icon}"></i>
-                <h3>${message}</h3>
-                ${filters.search || filters.status !== 'all' ? `
-                    <button class="btn btn-secondary" onclick="TaskTrackerUI.clearFilters()">
-                        Clear filters
-                    </button>
-                ` : ''}
-            </div>
-        `;
-    },
-    
     attachTaskEventListeners() {
         // Checkboxes
         document.querySelectorAll('.task-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
                 const taskId = e.target.closest('.task-item')?.dataset.taskId;
                 if (taskId) {
-                    TaskTrackerTasks.toggleTaskComplete(taskId);
+                    TaskTrackerState.toggleTaskComplete(taskId);
                 }
             });
         });
@@ -201,30 +138,18 @@ const TaskTrackerUI = {
             btn.addEventListener('click', (e) => {
                 const taskId = e.target.closest('.task-item')?.dataset.taskId;
                 if (taskId) {
-                    TaskTrackerTasks.deleteTask(taskId);
+                    if (confirm('Are you sure you want to delete this task?')) {
+                        TaskTrackerState.deleteTask(taskId);
+                    }
                 }
             });
         });
     },
     
-    updateFilteredCount() {
-        const filteredCount = TaskTrackerState.getFilteredTasks().length;
-        const totalCount = TaskTrackerState.getState().tasks.length;
+    renderStats() {
+        const stats = TaskTrackerState.getStatistics();
         
-        const filteredCountEl = document.getElementById('filteredCount');
-        const totalCountEl = document.getElementById('totalCount');
-        
-        if (filteredCountEl) filteredCountEl.textContent = filteredCount;
-        if (totalCountEl) totalCountEl.textContent = totalCount;
-        
-        // Update stat cards
-        this.updateStats();
-    },
-    
-    updateStats() {
-        const stats = TaskTrackerState.getTaskStatistics();
-        
-        // Update stat elements
+        // Update sidebar stats
         ['totalTasks', 'completedTasks', 'pendingTasks', 'overdueTasks'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.textContent = stats[id.replace('Tasks', '').toLowerCase()] || 0;
@@ -248,20 +173,21 @@ const TaskTrackerUI = {
         });
     },
     
-    updateUserInfo() {
-        const user = TaskTrackerState.getState().user;
+    renderNotifications() {
+        TaskTrackerState.renderNotifications();
+    },
+    
+    applyTheme() {
+        const theme = TaskTrackerState.theme;
+        document.body.classList.remove('light-theme', 'dark-theme');
+        document.body.classList.add(theme + '-theme');
         
-        if (user) {
-            const userName = document.getElementById('userName');
-            const userEmail = document.getElementById('userEmail');
-            const userAvatar = document.getElementById('userAvatar');
-            
-            if (userName) userName.textContent = user.name;
-            if (userEmail) userEmail.textContent = user.email;
-            
-            if (userAvatar && user.avatar) {
-                userAvatar.textContent = user.avatar.initials;
-                userAvatar.style.backgroundColor = user.avatar.color;
+        // Update theme toggle button
+        const themeToggle = document.querySelector('[data-action="toggle-theme"]');
+        if (themeToggle) {
+            const icon = themeToggle.querySelector('i');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             }
         }
     },
@@ -272,7 +198,7 @@ const TaskTrackerUI = {
         
         let task = null;
         if (taskId) {
-            task = TaskTrackerState.getState().tasks.find(t => t.id === taskId);
+            task = TaskTrackerState.tasks.find(t => t.id === taskId);
         }
         
         const isEdit = !!task;
@@ -304,9 +230,8 @@ const TaskTrackerUI = {
                         <div class="form-group">
                             <label for="taskPriority">Priority</label>
                             <select id="taskPriority" name="priority">
-                                <option value="none" ${task?.priority === 'none' ? 'selected' : ''}>None</option>
                                 <option value="low" ${task?.priority === 'low' ? 'selected' : ''}>Low</option>
-                                <option value="medium" ${task?.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                                <option value="medium" ${!task || task?.priority === 'medium' ? 'selected' : ''}>Medium</option>
                                 <option value="high" ${task?.priority === 'high' ? 'selected' : ''}>High</option>
                             </select>
                         </div>
@@ -349,27 +274,22 @@ const TaskTrackerUI = {
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
                 
-                TaskTrackerTasks.saveTask(data);
+                // Create task object
+                const taskData = {
+                    id: data.id || null,
+                    title: data.title,
+                    description: data.description,
+                    priority: data.priority,
+                    dueDate: data.dueDate || null
+                };
+                
+                // Save task
+                TaskTrackerTasks.saveTask(taskData);
+                
+                // Close modal
                 modal.classList.remove('active');
             });
         }
-    },
-    
-    clearFilters() {
-        TaskTrackerState.clearFilters();
-        TaskTrackerState.addNotification('Filters cleared', 'info');
-    },
-    
-    formatDate(date) {
-        const now = new Date();
-        const taskDate = new Date(date);
-        const diffTime = Math.abs(now - taskDate);
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 0) return 'Today';
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
-        return taskDate.toLocaleDateString();
     },
     
     escapeHtml(text) {
