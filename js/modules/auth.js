@@ -1,6 +1,7 @@
 // Authentication Module
 const TaskTrackerAuth = {
     init() {
+        console.log('Auth module initializing...');
         this.setupEventListeners();
     },
     
@@ -8,9 +9,22 @@ const TaskTrackerAuth = {
         // Login form
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
+            console.log('Login form found');
             loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                console.log('Login form submitted');
                 this.handleLogin();
+            });
+        }
+        
+        // Demo login button
+        const demoBtn = document.getElementById('demoLoginBtn');
+        if (demoBtn) {
+            console.log('Demo button found');
+            demoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Demo login clicked');
+                this.handleDemoLogin();
             });
         }
         
@@ -23,17 +37,10 @@ const TaskTrackerAuth = {
             });
         }
         
-        // Demo login button
-        const demoBtn = document.getElementById('demoLoginBtn');
-        if (demoBtn) {
-            demoBtn.addEventListener('click', () => {
-                this.handleDemoLogin();
-            });
-        }
-        
         // Auth tabs
         document.querySelectorAll('.auth-tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
+                e.preventDefault();
                 const tabName = e.target.dataset.tab;
                 this.switchAuthTab(tabName);
             });
@@ -44,40 +51,54 @@ const TaskTrackerAuth = {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         
+        console.log('Login attempt:', email, password ? '***' : 'empty');
+        
         if (!email || !password) {
-            this.showNotification('Please enter email and password', 'error');
+            this.showMessage('Please enter email and password', 'error');
             return;
         }
         
         const users = TaskTrackerStorage.getUsers();
+        console.log('Total users:', users.length);
+        
         const user = users.find(u => u.email === email && u.password === password);
         
         if (!user) {
-            this.showNotification('Invalid email or password', 'error');
+            this.showMessage('Invalid email or password', 'error');
             return;
         }
         
-        // Login successful
-        const userData = {
+        console.log('User found:', user);
+        
+        // Create user session data
+        const userSession = {
             id: user.id,
             name: user.name,
             email: user.email,
             avatar: user.avatar
         };
         
-        TaskTrackerState.login(userData);
-        this.showNotification(`Welcome back, ${user.name}!`, 'success');
+        // Save user to localStorage
+        TaskTrackerStorage.saveUser(userSession);
         
-        // Redirect to dashboard
+        // Show success and redirect
+        this.showMessage(`Welcome back, ${user.name}!`, 'success');
+        
+        // Redirect IMMEDIATELY
         setTimeout(() => {
+            console.log('Redirecting to dashboard...');
             window.location.href = 'dashboard.html';
-        }, 1000);
+        }, 800);
     },
     
     handleDemoLogin() {
-        // Auto-fill demo credentials
+        console.log('Demo login initiated');
+        
+        // Set demo credentials
         document.getElementById('loginEmail').value = 'demo@tasktracker.com';
         document.getElementById('loginPassword').value = 'demo123';
+        
+        // Submit form
         this.handleLogin();
     },
     
@@ -89,24 +110,24 @@ const TaskTrackerAuth = {
         
         // Validation
         if (!name || !email || !password || !confirmPassword) {
-            this.showNotification('All fields are required', 'error');
+            this.showMessage('All fields are required', 'error');
             return;
         }
         
         if (password.length < 6) {
-            this.showNotification('Password must be at least 6 characters', 'error');
+            this.showMessage('Password must be at least 6 characters', 'error');
             return;
         }
         
         if (password !== confirmPassword) {
-            this.showNotification('Passwords do not match', 'error');
+            this.showMessage('Passwords do not match', 'error');
             return;
         }
         
         const users = TaskTrackerStorage.getUsers();
         
         if (users.some(u => u.email === email)) {
-            this.showNotification('Email already registered', 'error');
+            this.showMessage('Email already registered', 'error');
             return;
         }
         
@@ -120,26 +141,20 @@ const TaskTrackerAuth = {
             createdAt: new Date().toISOString()
         };
         
-        TaskTrackerStorage.addUser(newUser);
+        // Save user
+        users.push(newUser);
+        TaskTrackerStorage.saveUsers(users);
         
         // Auto login
-        const userData = {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-            avatar: newUser.avatar
-        };
+        document.getElementById('loginEmail').value = email;
+        document.getElementById('loginPassword').value = password;
+        this.switchAuthTab('login');
         
-        TaskTrackerState.login(userData);
-        this.showNotification('Registration successful! Welcome!', 'success');
-        
-        setTimeout(() => {
-            window.location.href = 'dashboard.html';
-        }, 1000);
+        this.showMessage('Account created! Please login.', 'success');
     },
     
     generateAvatar(name) {
-        const colors = ['#4b6cb7', '#4CAF50', '#FF9800', '#9C27B0', '#2196F3', '#795548'];
+        const colors = ['#4b6cb7', '#4CAF50', '#FF9800', '#9C27B0', '#2196F3'];
         const initials = name
             .split(' ')
             .map(word => word[0])
@@ -147,9 +162,7 @@ const TaskTrackerAuth = {
             .toUpperCase()
             .substring(0, 2);
         
-        const colorIndex = name
-            .split('')
-            .reduce((sum, char) => sum + char.charCodeAt(0), 0) % colors.length;
+        const colorIndex = name.length % colors.length;
         
         return {
             initials,
@@ -167,16 +180,40 @@ const TaskTrackerAuth = {
         });
     },
     
-    showNotification(message, type = 'info') {
-        TaskTrackerState.addNotification(message, type);
-    },
-    
-    logout() {
-        TaskTrackerState.logout();
-        this.showNotification('Logged out successfully', 'info');
+    showMessage(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
         
+        // Add to container
+        const container = document.getElementById('notificationsContainer') || document.body;
+        if (document.getElementById('notificationsContainer')) {
+            document.getElementById('notificationsContainer').appendChild(notification);
+        } else {
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 9999;
+                font-family: sans-serif;
+            `;
+            document.body.appendChild(notification);
+        }
+        
+        // Remove after 3 seconds
         setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 500);
+            notification.remove();
+        }, 3000);
     }
 };

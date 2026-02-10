@@ -1,6 +1,34 @@
-// Storage Management
+// Storage Management 
 const TaskTrackerStorage = {
     prefix: 'task_tracker_',
+    
+    // Initialize demo user on first load
+    init() {
+        this.initDemoUser();
+    },
+    
+    initDemoUser() {
+        const users = this.getUsers();
+        const hasDemoUser = users.some(u => u.email === 'demo@tasktracker.com');
+        
+        if (!hasDemoUser) {
+            console.log('Creating demo user...');
+            const demoUser = {
+                id: 'demo_user_001',
+                name: 'Demo User',
+                email: 'demo@tasktracker.com',
+                password: 'demo123',
+                avatar: {
+                    initials: 'DU',
+                    color: '#4b6cb7'
+                },
+                createdAt: new Date().toISOString()
+            };
+            users.push(demoUser);
+            this.saveUsers(users);
+            console.log('Demo user created successfully');
+        }
+    },
     
     set(key, data) {
         try {
@@ -28,6 +56,16 @@ const TaskTrackerStorage = {
     remove(key) {
         const itemKey = this.prefix + key;
         localStorage.removeItem(itemKey);
+    },
+    
+    clear() {
+        // Clear only our app's data
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(this.prefix)) {
+                localStorage.removeItem(key);
+            }
+        }
     },
     
     // User management
@@ -72,14 +110,11 @@ const TaskTrackerStorage = {
         return this.set('users', users);
     },
     
-    addUser(user) {
-        const users = this.getUsers();
-        users.push(user);
-        return this.saveUsers(users);
-    },
-    
     findUserByEmail(email) {
         const users = this.getUsers();
         return users.find(u => u.email === email);
     }
 };
+
+// Initialize storage when file loads
+TaskTrackerStorage.init();

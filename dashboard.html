@@ -200,5 +200,26 @@
             window.taskTrackerApp.init();
         });
     </script>
+
+    <div style="position: fixed; bottom: 10px; right: 10px; z-index: 10000;">
+    <button onclick="showDebugInfo()" style="background: #666; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 12px;">
+        Debug
+    </button>
+</div>
+
+<script>
+function showDebugInfo() {
+    const user = JSON.parse(localStorage.getItem('task_tracker_current_user') || 'null');
+    const tasks = JSON.parse(localStorage.getItem('task_tracker_tasks_demo_user_001') || '[]');
+    
+    console.log('=== DEBUG INFO ===');
+    console.log('User:', user);
+    console.log('Tasks:', tasks);
+    console.log('==================');
+    
+    alert(`User: ${user ? user.name : 'None'}\nTasks: ${tasks.length}`);
+}
+</script>
+
 </body>
 </html>
