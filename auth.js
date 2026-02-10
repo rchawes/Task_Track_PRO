@@ -1,239 +1,213 @@
-/*
- * Task Tracker Pro - Authentication Module
- * This simulates a real authentication system using localStorage
- */
-
-class AuthSystem {
-    constructor() {
-        this.users = Storage.getUsers();
-        this.currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-        this.init();
-    }
-    
+// Authentication Module - FIXED VERSION
+const TaskTrackerAuth = {
     init() {
-        // Setup tab switching
+        console.log('Auth module initializing...');
+        this.setupEventListeners();
+    },
+    
+    setupEventListeners() {
+        // Login form
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            console.log('Login form found, attaching listener');
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleLogin();
+            });
+        }
+        
+        // Register form
+        const registerForm = document.getElementById('registerForm');
+        if (registerForm) {
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleRegister();
+            });
+        }
+        
+        // Demo login button
+        const demoBtn = document.getElementById('demoLoginBtn');
+        if (demoBtn) {
+            demoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleDemoLogin();
+            });
+        }
+        
+        // Auth tabs
         document.querySelectorAll('.auth-tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
+                e.preventDefault();
                 const tabName = e.target.dataset.tab;
-                this.switchTab(tabName);
+                this.switchAuthTab(tabName);
             });
         });
         
-        // Setup login form
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleLogin();
-        });
-        
-        // Setup register form
-        document.getElementById('registerForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleRegister();
-        });
-        
-        // Auto-redirect if already logged in
-        if (this.currentUser) {
-            window.location.href = 'dashboard.html';
-        }
-        
-        // Add demo user if none exists
-        if (!this.users.some(u => u.email === 'demo@tasktracker.com')) {
-            this.users.push({
-                id: this.generateId(),
-                name: 'Demo User',
-                email: 'demo@tasktracker.com',
-                password: 'demo123', // In real app, this would be hashed
-                avatar: '👨‍💻',
-                role: 'admin',
-                createdAt: new Date().toISOString()
-            });
-            this.saveUsers();
-        }
-    }
-    
-    switchTab(tabName) {
-        // Update active tab
-        document.querySelectorAll('.auth-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.tab === tabName);
-        });
-        
-        // Show active form
-        document.querySelectorAll('.auth-form').forEach(form => {
-            form.classList.toggle('active', form.id === `${tabName}Form`);
-        });
-    }
+        console.log('Auth event listeners setup complete');
+    },
     
     handleLogin() {
+        console.log('Login attempted');
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
-        const rememberMe = document.getElementById('rememberMe').checked;
         
-        // Find user
-        const user = this.users.find(u => u.email === email && u.password === password);
+        console.log('Email:', email, 'Password:', password ? '***' : 'empty');
         
-        if (user) {
-            // Success
-            this.currentUser = {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                avatar: user.avatar,
-                role: user.role
-            };
-            
-            // Save to localStorage
-            if (rememberMe) {
-                Storage.saveUsers(this.users);
-            } else {
-                sessionStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-            }
-            
-            // Show success message
-            this.showMessage('Login successful! Redirecting...', 'success');
-            
-            // Redirect to dashboard
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1500);
-        } else {
-            // Error
-            this.showMessage('Invalid email or password', 'error');
+        if (!email || !password) {
+            alert('Please enter email and password');
+            return;
         }
-    }
+        
+        const users = TaskTrackerStorage.getUsers();
+        console.log('Total users in storage:', users.length);
+        
+        const user = users.find(u => u.email === email && u.password === password);
+        
+        if (!user) {
+            alert('Invalid email or password');
+            return;
+        }
+        
+        console.log('User found:', user);
+        
+        // Create user data for state
+        const userData = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar
+        };
+        
+        // Save to storage FIRST
+        console.log('Saving user to storage...');
+        TaskTrackerStorage.saveUser(userData);
+        
+        // Load tasks for this user
+        const tasks = TaskTrackerStorage.getTasks();
+        console.log('Loaded tasks for user:', tasks.length);
+        
+        // Update state
+        TaskTrackerState.setState({
+            user: userData,
+            tasks: tasks,
+            ui: {
+                theme: 'light',
+                loading: false,
+                notifications: []
+            }
+        });
+        
+        // Show success message
+        console.log('Login successful, redirecting...');
+        alert(`Welcome back, ${user.name}! Redirecting to dashboard...`);
+        
+        // Force redirect immediately
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 500);
+    },
+    
+    handleDemoLogin() {
+        console.log('Demo login clicked');
+        // Auto-fill demo credentials
+        document.getElementById('loginEmail').value = 'demo@tasktracker.com';
+        document.getElementById('loginPassword').value = 'demo123';
+        this.handleLogin();
+    },
     
     handleRegister() {
+        console.log('Registration attempted');
         const name = document.getElementById('registerName').value;
         const email = document.getElementById('registerEmail').value;
         const password = document.getElementById('registerPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
         
         // Validation
-        if (password !== confirmPassword) {
-            this.showMessage('Passwords do not match', 'error');
+        if (!name || !email || !password || !confirmPassword) {
+            alert('All fields are required');
             return;
         }
         
         if (password.length < 6) {
-            this.showMessage('Password must be at least 6 characters', 'error');
+            alert('Password must be at least 6 characters');
             return;
         }
         
-        if (this.users.some(u => u.email === email)) {
-            this.showMessage('Email already registered', 'error');
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
+        
+        const users = TaskTrackerStorage.getUsers();
+        
+        if (users.some(u => u.email === email)) {
+            alert('Email already registered');
             return;
         }
         
         // Create new user
         const newUser = {
-            id: this.generateId(),
-            name: name,
-            email: email,
-            password: password, // In real app, hash this
+            id: 'user_' + Date.now(),
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            password: password,
             avatar: this.generateAvatar(name),
-            role: 'user',
             createdAt: new Date().toISOString()
         };
         
-        this.users.push(newUser);
-        this.saveUsers();
+        console.log('Creating new user:', newUser);
         
-        // Auto-login
-        this.currentUser = {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-            avatar: newUser.avatar,
-            role: newUser.role
-        };
+        // Add to users array
+        users.push(newUser);
+        TaskTrackerStorage.saveUsers(users);
         
-        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-        
-        this.showMessage('Account created successfully!', 'success');
-        
-        setTimeout(() => {
-            window.location.href = 'dashboard.html';
-        }, 1500);
-    }
-    
-    generateId() {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
+        // Auto login
+        document.getElementById('loginEmail').value = email;
+        document.getElementById('loginPassword').value = password;
+        this.handleLogin();
+    },
     
     generateAvatar(name) {
-        // Simple emoji-based avatar generator
-        const emojis = ['👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🎨', '👩‍🎨', '🧑‍🎨', '👨‍🚀', '👩‍🚀', '🧑‍🚀'];
-        const firstLetter = name.charCodeAt(0);
-        return emojis[firstLetter % emojis.length];
-    }
-    
-    saveUsers() {
-        localStorage.setItem('taskTrackerUsers', JSON.stringify(this.users));
-    }
-    
-    showMessage(text, type = 'info') {
-        // Remove existing message
-        const existing = document.querySelector('.auth-message');
-        if (existing) existing.remove();
+        const colors = ['#4b6cb7', '#4CAF50', '#FF9800', '#9C27B0', '#2196F3', '#795548'];
+        const initials = name
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .substring(0, 2);
         
-        // Create message element
-        const message = document.createElement('div');
-        message.className = `auth-message auth-message-${type}`;
-        message.innerHTML = `
-            <i class="fas fa-${this.getMessageIcon(type)}"></i>
-            <span>${text}</span>
-        `;
+        const colorIndex = name
+            .split('')
+            .reduce((sum, char) => sum + char.charCodeAt(0), 0) % colors.length;
         
-        // Add styles
-        message.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 600;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            background-color: ${this.getMessageColor(type)};
-        `;
-        
-        document.body.appendChild(message);
-        
-        // Auto-remove
-        setTimeout(() => {
-            message.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => message.remove(), 300);
-        }, 3000);
-    }
+        return {
+            initials,
+            color: colors[colorIndex]
+        };
+    },
     
-    getMessageIcon(type) {
-        switch(type) {
-            case 'success': return 'check-circle';
-            case 'error': return 'exclamation-circle';
-            case 'info': return 'info-circle';
-            default: return 'info-circle';
-        }
-    }
-    
-    getMessageColor(type) {
-        switch(type) {
-            case 'success': return '#4CAF50';
-            case 'error': return '#f44336';
-            case 'info': return '#2196F3';
-            default: return '#666';
-        }
-    }
+    switchAuthTab(tabName) {
+        console.log('Switching to tab:', tabName);
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+        
+        document.querySelectorAll('.auth-form').forEach(form => {
+            form.classList.toggle('active', form.id === `${tabName}Form`);
+        });
+    },
     
     logout() {
-        localStorage.removeItem('currentUser');
-        sessionStorage.removeItem('currentUser');
-        window.location.href = 'auth.html';
+        console.log('Logout requested');
+        TaskTrackerStorage.remove('current_user');
+        TaskTrackerState.setState({
+            user: null,
+            tasks: []
+        });
+        
+        alert('Logged out successfully');
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 500);
     }
-}
-
-// Initialize auth system
-const auth = new AuthSystem();
+};

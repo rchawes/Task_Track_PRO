@@ -18,27 +18,37 @@ const TaskTrackerState = {
     listeners: [],
     
     init() {
-        // Load from storage
+        console.log('State initializing...');
+        
+        // Initialize demo user FIRST
+        this.initDemoUser();
+        
+        // Then load from storage
         const user = TaskTrackerStorage.getCurrentUser();
         if (user) {
             this.state.user = user;
-            this.state.tasks = TaskTrackerStorage.getTasks();
+            this.state.tasks = TaskTrackerStorage.getTasks() || [];
             
             const settings = TaskTrackerStorage.getSettings();
             if (settings.theme) {
                 this.state.ui.theme = settings.theme;
             }
+            
+            console.log('Loaded user from storage:', user);
         }
         
-        // Initialize demo user
-        this.initDemoUser();
+        console.log('State initialized:', this.state);
     },
     
     initDemoUser() {
+        console.log('Checking for demo user...');
         const users = TaskTrackerStorage.getUsers();
+        console.log('Existing users:', users.length);
+        
         const hasDemoUser = users.some(u => u.email === 'demo@tasktracker.com');
         
         if (!hasDemoUser) {
+            console.log('Creating demo user...');
             const demoUser = {
                 id: 'demo_user_001',
                 name: 'Demo User',
@@ -52,6 +62,9 @@ const TaskTrackerState = {
             };
             users.push(demoUser);
             TaskTrackerStorage.saveUsers(users);
+            console.log('Demo user created:', demoUser);
+        } else {
+            console.log('Demo user already exists');
         }
     },
     

@@ -1,37 +1,67 @@
 // Main Application Controller
 const TaskTrackerApp = {
     init() {
-        console.log('Task Tracker Pro Initializing...');
+        console.log('=== Task Tracker Pro Initializing ===');
         
-        // Initialize state
+        // Initialize state FIRST
         TaskTrackerState.init();
         
-        // Initialize auth on login page
-        if (window.location.pathname.includes('index.html') || 
-            window.location.pathname === '/') {
-            TaskTrackerAuth.init();
-            this.setupLoginPage();
-        }
+        // Get current page
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        console.log('Current page:', currentPage);
         
-        // Initialize dashboard
-        if (window.location.pathname.includes('dashboard.html')) {
-            this.setupDashboard();
+        // Check authentication status
+        const user = TaskTrackerState.getState().user;
+        console.log('Current user:', user);
+        
+        // Handle page routing
+        if (currentPage === 'index.html' || currentPage === '' || currentPage.includes('index')) {
+            console.log('On login page');
+            if (user) {
+                console.log('User already logged in, redirecting to dashboard');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 100);
+            } else {
+                TaskTrackerAuth.init();
+                this.setupLoginPage();
+            }
+        } else if (currentPage === 'dashboard.html' || currentPage.includes('dashboard')) {
+            console.log('On dashboard page');
+            if (!user) {
+                console.log('No user found, redirecting to login');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Initialize dashboard
+            TaskTrackerTasks.init();
+            TaskTrackerUI.init();
+            this.setupDashboardEvents();
+            TaskTrackerUI.render();
+            
+            console.log('Dashboard initialized for user:', user.name);
         }
         
         // Setup global state subscription
         this.setupStateSubscription();
         
-        console.log('Task Tracker Pro Ready!');
+        console.log('=== Task Tracker Pro Ready ===');
     },
     
     setupLoginPage() {
-        // Check if user is already logged in
-        const user = TaskTrackerState.getState().user;
-        if (user) {
-            // Redirect to dashboard
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 100);
+        // Add console logs for debugging
+        console.log('Setting up login page...');
+        
+        // Check if demo button exists
+        const demoBtn = document.getElementById('demoLoginBtn');
+        if (demoBtn) {
+            console.log('Demo button found');
+            demoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Demo button clicked via app.js');
+                TaskTrackerAuth.handleDemoLogin();
+            });
         }
     },
     
