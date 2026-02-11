@@ -150,6 +150,64 @@ select.form-control {
     padding-right: 2.5rem;
 }
 
+/* Task Checkbox Fixes */
+.task-checkbox-container {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+.task-checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkbox-custom {
+    position: relative;
+    height: 20px;
+    width: 20px;
+    background-color: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    transition: all var(--transition-fast);
+}
+
+.task-checkbox:checked ~ .checkbox-custom {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.task-checkbox:checked ~ .checkbox-custom::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Hover effect */
+.task-checkbox-container:hover .checkbox-custom {
+    border-color: var(--primary-color);
+}
+
+/* Completed task styling */
+.task-item.completed .task-title {
+    text-decoration: line-through;
+    color: var(--text-tertiary);
+}
+
+.task-item.completed .task-description {
+    opacity: 0.7;
+}
+
 /* Checkbox and Radio */
 .form-check {
     display: flex;
