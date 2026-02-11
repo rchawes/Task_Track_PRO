@@ -150,42 +150,46 @@ select.form-control {
     padding-right: 2.5rem;
 }
 
-/* Task Checkbox Fixes */
+/* Task Checkbox Styles - FIXED */
 .task-checkbox-container {
-    cursor: pointer;
     position: relative;
-    user-select: none;
+    min-width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .task-checkbox {
     position: absolute;
     opacity: 0;
     cursor: pointer;
-    height: 0;
-    width: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    z-index: 1;
 }
 
 .checkbox-custom {
-    position: relative;
-    height: 20px;
-    width: 20px;
-    background-color: var(--bg-primary);
+    width: 18px;
+    height: 18px;
     border: 2px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    display: inline-block;
-    transition: all var(--transition-fast);
+    border-radius: 4px;
+    background-color: var(--bg-primary);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
 }
 
-.task-checkbox:checked ~ .checkbox-custom {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.task-checkbox:checked ~ .checkbox-custom::after {
+.checkbox-custom::after {
     content: '';
     position: absolute;
-    left: 6px;
-    top: 2px;
+    display: none;
+    left: 5px;
+    top: 1px;
     width: 5px;
     height: 10px;
     border: solid white;
@@ -193,12 +197,28 @@ select.form-control {
     transform: rotate(45deg);
 }
 
-/* Hover effect */
+.task-checkbox:checked + .checkbox-custom {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.task-checkbox:checked + .checkbox-custom::after {
+    display: block;
+}
+
+.task-checkbox:focus + .checkbox-custom {
+    box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.2);
+}
+
 .task-checkbox-container:hover .checkbox-custom {
     border-color: var(--primary-color);
 }
 
 /* Completed task styling */
+.task-item.completed {
+    opacity: 0.8;
+}
+
 .task-item.completed .task-title {
     text-decoration: line-through;
     color: var(--text-tertiary);
@@ -206,6 +226,10 @@ select.form-control {
 
 .task-item.completed .task-description {
     opacity: 0.7;
+}
+
+.task-item.completed .priority-badge {
+    opacity: 0.6;
 }
 
 /* Checkbox and Radio */
